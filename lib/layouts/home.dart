@@ -14,10 +14,9 @@ import 'package:mini_quiz_creator/widgets/grammarly_button.dart';
 import 'package:mini_quiz_creator/widgets/mark_completed.dart';
 import 'package:mini_quiz_creator/widgets/view_question_source.dart';
 import 'package:provider/provider.dart';
-import 'package:mini_quiz_creator/layouts/question.dart';
 
-import '../widgets/component_screen.dart';
 import '../constants.dart';
+import '../widgets/navigation_bar.dart';
 
 class Home extends StatefulWidget {
   const Home({
@@ -103,10 +102,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       ScreenSelected screenSelected, bool showNavBarExample) {
     switch (screenSelected) {
       default:
-        return QuestionScreen(
-          railAnimation: railAnimation,
-          showSecondList: showMediumSizeLayout || showLargeSizeLayout,
-        );
+        return Text("Hi");
     }
   }
 
@@ -424,7 +420,6 @@ class _NavigationTransitionState extends State<NavigationTransition> {
         backgroundColor: colorScheme.surface,
         child: widget.navigationBar,
       ),
-      endDrawer: const NavigationDrawerSection(),
     );
   }
 }

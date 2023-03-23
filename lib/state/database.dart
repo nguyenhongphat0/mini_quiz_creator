@@ -7,7 +7,6 @@ import 'package:mini_quiz_creator/constants.dart';
 import 'package:mini_quiz_creator/models/database.dart';
 import 'package:http/http.dart' as http;
 import 'package:mini_quiz_creator/models/question.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseState extends ChangeNotifier {
   /// Internal, private state of the cart.

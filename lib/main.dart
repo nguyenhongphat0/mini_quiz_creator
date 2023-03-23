@@ -5,15 +5,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'constants.dart';
 import 'layouts/home.dart';
 
-void main() {
-  runApp(
-    const App(),
+Future<void> main() async {
+  await Supabase.initialize(
+    url: 'https://xyzcompany.supabase.co',
+    anonKey: 'public-anon-key',
   );
+
+  runApp(App());
 }
+
+// Get a reference your Supabase client
+final supabase = Supabase.instance.client;
 
 class App extends StatefulWidget {
   const App({super.key});

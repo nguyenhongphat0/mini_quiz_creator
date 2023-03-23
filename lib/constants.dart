@@ -40,14 +40,3 @@ enum ScreenSelected {
   const ScreenSelected(this.value);
   final int value;
 }
-
-enum CategoryNames {
-  ds('Data Sufficiency'),
-  ps('Problem Solving'),
-  cr('Critical Reasoning'),
-  sc('Sentence Correction'),
-  rc('Reading Comprehension');
-
-  const CategoryNames(this.value);
-  final String value;
-}
