@@ -3,16 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:mini_quiz_creator/layouts/creator.dart';
 import 'package:mini_quiz_creator/menu.dart';
+import 'package:mini_quiz_creator/state/creator.dart';
 import 'package:mini_quiz_creator/state/database.dart';
 import 'package:mini_quiz_creator/state/preferences.dart';
-import 'package:mini_quiz_creator/widgets/chatgpt_button.dart';
-import 'package:mini_quiz_creator/widgets/count_up.dart';
-import 'package:mini_quiz_creator/widgets/flag_question.dart';
-import 'package:mini_quiz_creator/widgets/google_translate_button.dart';
-import 'package:mini_quiz_creator/widgets/grammarly_button.dart';
-import 'package:mini_quiz_creator/widgets/mark_completed.dart';
-import 'package:mini_quiz_creator/widgets/view_question_source.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
@@ -102,58 +97,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       ScreenSelected screenSelected, bool showNavBarExample) {
     switch (screenSelected) {
       default:
-        return Text("Hi");
+        return CreatorScreen();
     }
-  }
-
-  PreferredSizeWidget createAppBar() {
-    return AppBar(
-      title: Consumer<DatabaseState>(
-        builder: (context, value, child) => value.questionsByCategory.length > 0
-            ? Stack(
-                children: [
-                  Align(
-                    alignment: showMediumSizeLayout || showLargeSizeLayout
-                        ? Alignment.center
-                        : Alignment.centerLeft,
-                    child: CountupTimer(
-                        key: Key(value
-                            .questionsByCategory[value.selectedQuestionIndex])),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      FlagQuestion(
-                        questionId: value
-                            .questionsByCategory[value.selectedQuestionIndex],
-                      ),
-                      SizedBox(width: 8),
-                      MarkCompleted(
-                        questionId: value
-                            .questionsByCategory[value.selectedQuestionIndex],
-                      )
-                    ],
-                  )
-                ],
-              )
-            : Row(),
-      ),
-      actions: !showMediumSizeLayout && !showLargeSizeLayout
-          ? [
-              _BrightnessButton(
-                handleBrightnessChange: widget.handleBrightnessChange,
-              ),
-              ViewQuestionSource(),
-              GoogleTranslateButton(),
-              GrammarlyButton(),
-              ChatGPTButton(),
-              _ColorSeedButton(
-                handleColorSelect: widget.handleColorSelect,
-                colorSelected: widget.colorSelected,
-              ),
-            ]
-          : [Container()],
-    );
   }
 
   Widget _expandedTrailingActions() => Container(
@@ -207,18 +152,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             ),
           ),
           Flexible(
-            child: ViewQuestionSource(),
-          ),
-          Flexible(
-            child: GoogleTranslateButton(),
-          ),
-          Flexible(
-            child: GrammarlyButton(),
-          ),
-          Flexible(
-            child: ChatGPTButton(),
-          ),
-          Flexible(
             child: _ColorSeedButton(
               handleColorSelect: widget.handleColorSelect,
               colorSelected: widget.colorSelected,
@@ -233,6 +166,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       providers: [
         ChangeNotifierProvider(create: (context) => DatabaseState()),
         ChangeNotifierProvider(create: (context) => PreferencesState()),
+        ChangeNotifierProvider(create: (context) => CreatorState()),
       ],
       child: AnimatedBuilder(
         animation: controller,
@@ -242,7 +176,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               scaffoldKey: scaffoldKey,
               animationController: controller,
               railAnimation: railAnimation,
-              appBar: createAppBar(),
               body: createScreenFor(
                 ScreenSelected.values[state.screenIndex],
                 controller.value == 1,
@@ -361,7 +294,6 @@ class NavigationTransition extends StatefulWidget {
       required this.railAnimation,
       required this.navigationRail,
       required this.navigationBar,
-      required this.appBar,
       required this.body});
 
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -369,7 +301,6 @@ class NavigationTransition extends StatefulWidget {
   final CurvedAnimation railAnimation;
   final Widget navigationRail;
   final Widget navigationBar;
-  final PreferredSizeWidget appBar;
   final Widget body;
 
   @override
@@ -404,7 +335,6 @@ class _NavigationTransitionState extends State<NavigationTransition> {
 
     return Scaffold(
       key: widget.scaffoldKey,
-      appBar: widget.appBar,
       body: Row(
         children: <Widget>[
           RailTransition(

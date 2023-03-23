@@ -67,4 +67,14 @@ class DatabaseState extends ChangeNotifier {
     Clipboard.setData(ClipboardData(text: textContent));
     this.questionSrc = question.src;
   }
+
+  List<String> get allQuestionIds {
+    List<String> ids = [];
+    ids.addAll(this.database?.cr.map((id) => "[CR] $id") ?? []);
+    ids.addAll(this.database?.ds.map((id) => "[DS] $id") ?? []);
+    ids.addAll(this.database?.ps.map((id) => "[PS] $id") ?? []);
+    ids.addAll(this.database?.rc.map((id) => "[RC] $id") ?? []);
+    ids.addAll(this.database?.sc.map((id) => "[SC] $id") ?? []);
+    return ids;
+  }
 }

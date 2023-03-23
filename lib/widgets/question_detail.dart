@@ -1,27 +1,17 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:mini_quiz_creator/state/database.dart';
 import 'package:mini_quiz_creator/widgets/rich_content.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../models/question.dart';
 
 class QuestionDetail extends StatefulWidget {
   QuestionDetail({
     super.key,
-    required this.railAnimation,
-    required this.questionId,
-    required this.showSecondList,
-  }) : _future = http
-            .get(Uri.parse(
-                'https://nguyenhongphat0.github.io/gmat-database/$questionId.json'))
-            .then((value) => Question.fromJson(jsonDecode(value.body)));
+    required this.question,
+  });
 
-  final String questionId;
-  late final Future<Question> _future;
-  final CurvedAnimation railAnimation;
-  final bool showSecondList;
+  final Question question;
 
   @override
   State<QuestionDetail> createState() => _QuestionDetailState();
@@ -34,81 +24,40 @@ class _QuestionDetailState extends State<QuestionDetail> {
   @override
   Widget build(BuildContext context) {
     return Consumer<DatabaseState>(
-      builder: (context, state, child) => FutureBuilder(
-        future: widget._future,
-        builder: (BuildContext context, AsyncSnapshot<Question> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            final question = snapshot.data!;
-            state.setQuestionContent(question);
-            return Container(
-                child: Container(
-              child: FocusTraversalGroup(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: Column(
-                      children: [
-                        RichContent(question.question),
-                        if (question.answers != null)
-                          ListAnswer(answers: question.answers!),
-                        if (question.subQuestions != null)
-                          Column(
-                            children: List.generate(
-                              question.subQuestions!.length,
-                              (index) => Column(
-                                children: [
-                                  RichContent(
-                                      question.subQuestions![index].question),
-                                  ListAnswer(
-                                      answers: question
-                                          .subQuestions![index].answers),
-                                ],
-                              ),
-                            ),
-                          ),
-                        if (!widget.showSecondList)
-                          Container(
-                            margin: const EdgeInsets.all(8.0),
-                            child: FloatingActionButton.extended(
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (context) => Stack(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.topRight,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: IconButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            icon: Icon(Icons.close),
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              },
-                              label: Text(
-                                  "Show ${question.explanations.length} explanation${question.explanations.length > 1 ? 's' : ''}"),
-                              icon: Icon(Icons.reviews),
-                            ),
-                          ),
-                      ],
-                    ),
+      builder: (context, value, child) => Container(
+        child: Container(
+          child: FocusTraversalGroup(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      launchUrlString(widget.question.src);
+                    },
+                    child: RichContent(widget.question.question),
                   ),
-                ),
+                  if (widget.question.answers != null)
+                    ListAnswer(answers: widget.question.answers!),
+                  if (widget.question.subQuestions != null)
+                    Column(
+                      children: List.generate(
+                        widget.question.subQuestions!.length,
+                        (index) => Column(
+                          children: [
+                            RichContent(
+                                widget.question.subQuestions![index].question),
+                            ListAnswer(
+                                answers: widget
+                                    .question.subQuestions![index].answers),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ));
-          }
-        },
+            ),
+          ),
+        ),
       ),
     );
   }
