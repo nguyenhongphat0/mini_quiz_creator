@@ -131,8 +131,11 @@ class CreatorScreen extends StatelessWidget {
                                   optionsBuilder:
                                       (TextEditingValue textEditingValue) {
                                     return database.allQuestionIds.where(
-                                        (questionId) => questionId.contains(
-                                            textEditingValue.text.trim()));
+                                        (questionId) => questionId
+                                            .toLowerCase()
+                                            .contains(textEditingValue.text
+                                                .trim()
+                                                .toLowerCase()));
                                   },
                                 ),
                               ),
@@ -168,14 +171,17 @@ class CreatorScreen extends StatelessWidget {
 }
 
 class QuizPreview extends StatelessWidget {
-  const QuizPreview({
+  QuizPreview({
     super.key,
   });
+
+  final scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     return Consumer<CreatorState>(
       builder: (context, creator, child) => SingleChildScrollView(
+        controller: scrollController,
         child: Column(
           children: [
             ...creator.questionIds.map(
@@ -212,6 +218,15 @@ class QuizPreview extends StatelessWidget {
                                             Text('Error: ${snapshot.error}'));
                                   } else {
                                     final question = snapshot.data!;
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((timeStamp) {
+                                      scrollController.animateTo(
+                                        scrollController
+                                            .position.maxScrollExtent,
+                                        duration: Duration(milliseconds: 500),
+                                        curve: Curves.easeOut,
+                                      );
+                                    });
                                     return QuestionDetail(
                                       question: question,
                                     );

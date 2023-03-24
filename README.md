@@ -1,6 +1,6 @@
 # Mini Quiz Creator
 
-Mini Quiz Creator is a client for the [GMAT Database](https://github.com/nguyenhongphat0/gmat-database) project, designed to provide users with a wide range of GMAT practice questions to help them prepare for the GMAT exam. This app supports Material You design principles, allowing users to customize the app's appearance to their liking.
+This app allows users to create GMAT tests and view submissions.
 
 ## Preview
 
@@ -9,25 +9,13 @@ Mini Quiz Creator is a client for the [GMAT Database](https://github.com/nguyenh
 
 ## Features
 
-### View Questions
+### Create GMAT Tests
 
-Users can access a vast collection of GMAT practice questions on this app by navigating through various categories and sub-categories. Each question is presented in a clear and easy-to-read format, making it easy for users to understand the question and attempt it.
+Users can create GMAT tests by selecting questions from the database. The app supports five different types of questions: Quantitative Comparison, Data Sufficiency, Problem Solving, Sentence Correction, and Critical Reasoning. Users can select the question type they want to include in their test and filter the questions based on their difficulty level. They can also set the time limit for the test and choose the number of questions to include.
 
-### Different Question Types
+### View Submissions
 
-Mini Quiz Creator supports five different types of questions: Quantitative Comparison, Data Sufficiency, Problem Solving, Sentence Correction, and Critical Reasoning. Users can select the question type they want to practice and filter the questions based on their difficulty level.
-
-### Explanations
-
-For each question, the app provides a detailed explanation of the solution, helping users understand the concepts involved and learn from their mistakes. The explanations are provided in an easy-to-understand language and include step-by-step solutions.
-
-### Timing
-
-Mini Quiz Creator also includes a timer feature, allowing users to time their attempts and track their progress. Users can set the time limit for each question or practice set and try to complete it within the specified time. This feature helps users manage their time effectively during the GMAT exam and improve their speed and accuracy.
-
-### Material You
-
-The app supports Material You design principles, allowing users to customize the app's appearance by choosing from a range of color schemes and themes. Users can select a primary color and the app will generate a color palette based on that color, providing a unique and personalized experience.
+Users can view their test submissions and check their scores. The app provides a detailed report of the user's performance, including the number of correct and incorrect answers and the time taken to complete the test.
 
 ## Usage
 
