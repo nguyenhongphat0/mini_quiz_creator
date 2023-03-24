@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mini_quiz_creator/main.dart';
 import 'package:mini_quiz_creator/state/creator.dart';
 import 'package:mini_quiz_creator/state/database.dart';
 import 'package:mini_quiz_creator/widgets/question_detail.dart';
@@ -8,8 +9,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class CreatorScreen extends StatelessWidget {
-  final nameController = TextEditingController(text: "ZStudio GMAT Test 1");
-  final durationController = TextEditingController(text: "30");
+  final _nameController = TextEditingController(text: "ZStudio GMAT Test 1");
+  final _durationController = TextEditingController(text: "30");
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -27,7 +28,7 @@ class CreatorScreen extends StatelessWidget {
                         child: Column(
                           children: [
                             TextField(
-                              controller: nameController,
+                              controller: _nameController,
                               decoration: InputDecoration(
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.zero,
@@ -39,9 +40,10 @@ class CreatorScreen extends StatelessWidget {
                                       ?.fontSize),
                             ),
                             TextField(
-                              controller: durationController,
+                              controller: _durationController,
                               decoration: InputDecoration(
                                 labelText: 'Duration (minutes)',
+                                hintText: '30',
                               ),
                               inputFormatters: <TextInputFormatter>[
                                 FilteringTextInputFormatter.allow(
@@ -156,11 +158,49 @@ class CreatorScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
-                child: FloatingActionButton.extended(
-                  onPressed: () {},
-                  label: Text("Copy Quiz Link"),
-                  icon: Icon(Icons.copy),
-                ),
+                child:
+                    Consumer<CreatorState>(builder: (context, creator, child) {
+                  return FloatingActionButton.extended(
+                    onPressed: () async {
+                      _alert(String message) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            showCloseIcon: true, content: Text(message)));
+                      }
+
+                      try {
+                        if (_nameController.text.isEmpty) {
+                          return _alert('Give your quiz a name!');
+                        }
+                        if (creator.questionIds.length == 0) {
+                          return _alert(
+                              'Your quiz is empty, put in some questions!');
+                        }
+                        final response = await supabase
+                            .from('gmat_quizzes')
+                            .insert({
+                              'name': _nameController.text,
+                              'duration': _durationController.text,
+                              'author': supabase.auth.currentUser?.email,
+                              'question_ids': creator.questionIds
+                                  .map((id) => id.substring(5))
+                                  .join(",")
+                            })
+                            .select()
+                            .single();
+                        final id = response['id'];
+                        _alert("Quiz ID: $id");
+
+                        if (id == null) {
+                          throw Exception('Failed to insert quiz');
+                        }
+                      } catch (e) {
+                        _alert(e.toString());
+                      }
+                    },
+                    label: Text("Build Quiz"),
+                    icon: Icon(Icons.done_all),
+                  );
+                }),
               ),
             ),
           )
