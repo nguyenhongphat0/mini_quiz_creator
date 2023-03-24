@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mini_quiz_creator/layouts/creator.dart';
+import 'package:mini_quiz_creator/main.dart';
 import 'package:mini_quiz_creator/menu.dart';
 import 'package:mini_quiz_creator/state/creator.dart';
 import 'package:mini_quiz_creator/state/database.dart';
@@ -157,6 +158,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               colorSelected: widget.colorSelected,
             ),
           ),
+          Flexible(
+            child: _LogoutButton(),
+          ),
         ],
       );
 
@@ -205,6 +209,24 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
             ),
           );
+        },
+      ),
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Logout',
+      child: IconButton(
+        icon: Icon(Icons.logout),
+        onPressed: () async {
+          supabase.auth.signOut();
+          Navigator.of(context).pushNamed('/login');
         },
       ),
     );

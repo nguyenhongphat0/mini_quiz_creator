@@ -4,16 +4,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:mini_quiz_creator/layouts/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'constants.dart';
 import 'layouts/home.dart';
+import 'layouts/otp.dart';
 
 Future<void> main() async {
   await Supabase.initialize(
-    url: 'https://xyzcompany.supabase.co',
-    anonKey: 'public-anon-key',
+    url: 'https://przvyntsigxljcvmzyos.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByenZ5bnRzaWd4bGpjdm16eW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc5MDk5NTAsImV4cCI6MTk5MzQ4NTk1MH0.SR7cteHreLMDz234A9dqOONCVzIerpDDgrflTl2jR_Q',
   );
 
   runApp(App());
@@ -84,13 +87,18 @@ class _AppState extends State<App> {
         useMaterial3: true,
         brightness: Brightness.dark,
       ),
-      home: Home(
-        useLightMode: useLightMode,
-        useMaterial3: true,
-        colorSelected: colorSelected,
-        handleBrightnessChange: handleBrightnessChange,
-        handleColorSelect: handleColorSelect,
-      ),
+      routes: {
+        '/': (context) => Home(
+              useLightMode: useLightMode,
+              useMaterial3: true,
+              colorSelected: colorSelected,
+              handleBrightnessChange: handleBrightnessChange,
+              handleColorSelect: handleColorSelect,
+            ),
+        '/login': (context) => LoginScreen(),
+        '/otp': (context) => OtpScreen(),
+      },
+      initialRoute: supabase.auth.currentUser != null ? '/' : '/login',
     );
   }
 }
