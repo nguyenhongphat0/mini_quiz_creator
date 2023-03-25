@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mini_quiz_creator/layouts/creator.dart';
+import 'package:mini_quiz_creator/layouts/submissions.dart';
 import 'package:mini_quiz_creator/main.dart';
 import 'package:mini_quiz_creator/menu.dart';
 import 'package:mini_quiz_creator/state/creator.dart';
@@ -13,6 +14,14 @@ import 'package:provider/provider.dart';
 
 import '../constants.dart';
 import '../widgets/navigation_bar.dart';
+
+enum ScreenSelected {
+  creator(0),
+  submissions(1);
+
+  const ScreenSelected(this.value);
+  final int value;
+}
 
 class Home extends StatefulWidget {
   const Home({
@@ -41,6 +50,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   bool controllerInitialized = false;
   bool showMediumSizeLayout = false;
   bool showLargeSizeLayout = false;
+  ScreenSelected _screenSelected = ScreenSelected.creator;
 
   @override
   initState() {
@@ -97,8 +107,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget createScreenFor(
       ScreenSelected screenSelected, bool showNavBarExample) {
     switch (screenSelected) {
+      case ScreenSelected.submissions:
+        return SubmissionsScreen();
       default:
-        return CreatorScreen();
+        return CreatorScreen(
+          onComplete: () {
+            _changeScreen(ScreenSelected.submissions);
+          },
+        );
     }
   }
 
@@ -164,6 +180,18 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ],
       );
 
+  _changeScreen(ScreenSelected screen) {
+    setState(() {
+      _screenSelected = screen;
+    });
+  }
+
+  _changeScreenIndex(int index) {
+    setState(() {
+      _screenSelected = ScreenSelected.values[index];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -181,15 +209,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               animationController: controller,
               railAnimation: railAnimation,
               body: createScreenFor(
-                ScreenSelected.values[state.screenIndex],
+                _screenSelected,
                 controller.value == 1,
               ),
               navigationRail: NavigationRail(
                 extended: showLargeSizeLayout,
                 destinations: navRailDestinations,
-                selectedIndex: state.screenIndex,
+                selectedIndex: ScreenSelected.values.indexOf(_screenSelected),
                 onDestinationSelected: (index) {
-                  state.changeScreen(index);
+                  _changeScreenIndex(index);
                 },
                 trailing: Expanded(
                   child: Padding(
@@ -202,9 +230,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
               navigationBar: NavigationBars(
                 onSelectItem: (index) {
-                  state.changeScreen(index);
+                  _changeScreenIndex(index);
                 },
-                selectedIndex: state.screenIndex,
+                selectedIndex: ScreenSelected.values.indexOf(_screenSelected),
                 isExampleBar: false,
               ),
             ),

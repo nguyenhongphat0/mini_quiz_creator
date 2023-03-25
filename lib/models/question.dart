@@ -1,6 +1,7 @@
 class Question {
   final String id;
   final String src;
+  final String type;
   final String question;
   final List<String> explanations;
   final List<String>? answers;
@@ -9,6 +10,7 @@ class Question {
   Question({
     required this.id,
     required this.src,
+    required this.type,
     required this.question,
     required this.explanations,
     required this.answers,
@@ -19,6 +21,7 @@ class Question {
     return Question(
       id: json['id'],
       src: json['src'],
+      type: json['type'],
       question: json['question'],
       explanations: List<String>.from(json['explanations']),
       answers:

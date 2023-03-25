@@ -9,8 +9,16 @@ class CreatorState extends ChangeNotifier {
   List<String> questionIds = [];
   Map<String, Question> questions = {};
   Map<String, dynamic> answers = {};
+  bool submissionLoading = false;
+
+  get dbQuestionIds {
+    return questionIds.map((id) => id.substring(5)).toList();
+  }
 
   Future<Question> loadQuestion(String questionId) async {
+    if (questions[questionId] != null) {
+      return Future.value(questions[questionId]);
+    }
     return http
         .get(Uri.parse(
             'https://nguyenhongphat0.github.io/gmat-database/$questionId.json'))
@@ -35,6 +43,16 @@ class CreatorState extends ChangeNotifier {
     final questionid = questionIds.removeAt(index);
     notifyListeners();
     return questionid;
+  }
+
+  Future<void> replaceQuestionList(List<String> questionIds) async {
+    this.submissionLoading = true;
+    notifyListeners();
+    final res = await Future.wait(questionIds.map((id) => loadQuestion(id)));
+    this.questionIds =
+        res.map((question) => "[${question.type}] ${question.id}").toList();
+    this.submissionLoading = false;
+    notifyListeners();
   }
 
   void giveAnswer(String questionId, dynamic answer) {

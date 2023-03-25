@@ -12,7 +12,6 @@ class DatabaseState extends ChangeNotifier {
   /// Internal, private state of the cart.
   Database? database;
   int selectedQuestionIndex = 0;
-  int screenIndex = ScreenSelected.ds.value;
   String? questionContent;
   String? questionSrc;
 
@@ -29,33 +28,9 @@ class DatabaseState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeScreen(int screenSelected) {
-    screenIndex = screenSelected;
-    notifyListeners();
-  }
-
   void selectQuestion(int index) {
     this.selectedQuestionIndex = index;
     notifyListeners();
-  }
-
-  List<String> get questionsByCategory {
-    if (this.database != null) {
-      final database = this.database!;
-      switch (ScreenSelected.values[screenIndex]) {
-        case ScreenSelected.cr:
-          return database.cr;
-        case ScreenSelected.ds:
-          return database.ds;
-        case ScreenSelected.ps:
-          return database.ps;
-        case ScreenSelected.sc:
-          return database.sc;
-        case ScreenSelected.rc:
-          return database.rc;
-      }
-    }
-    return [];
   }
 
   void setQuestionContent(Question question) {

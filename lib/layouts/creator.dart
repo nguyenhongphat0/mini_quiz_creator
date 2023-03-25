@@ -11,10 +11,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class CreatorScreen extends StatelessWidget {
-  final _nameController = TextEditingController(text: "ZStudio GMAT Test 1");
+  final VoidCallback onComplete;
+
+  CreatorScreen({Key? key, required this.onComplete}) : super(key: key);
+
+  final _nameController = TextEditingController(text: "");
   final _durationController = TextEditingController(text: "30");
+
   @override
   Widget build(BuildContext context) {
+    bool _loading = false;
+
     return Expanded(
       child: Stack(
         children: [
@@ -32,9 +39,11 @@ class CreatorScreen extends StatelessWidget {
                             TextField(
                               controller: _nameController,
                               decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
-                                  isDense: true),
+                                hintText: 'Quiz Name',
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                isDense: true,
+                              ),
                               style: TextStyle(
                                   fontSize: Theme.of(context)
                                       .textTheme
@@ -162,57 +171,80 @@ class CreatorScreen extends StatelessWidget {
               child: Container(
                 child:
                     Consumer<CreatorState>(builder: (context, creator, child) {
-                  return FloatingActionButton.extended(
-                    onPressed: () async {
-                      _alert(String message) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            showCloseIcon: true, content: Text(message)));
-                      }
+                  return StatefulBuilder(builder: (context, setState) {
+                    return FloatingActionButton.extended(
+                      label: Text("Build Quiz"),
+                      icon: _loading
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                              ),
+                            )
+                          : Icon(Icons.done_all),
+                      onPressed: () async {
+                        if (_loading) {
+                          return;
+                        }
+                        setState(() {
+                          _loading = true;
+                        });
+                        _alert(String message) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              showCloseIcon: true, content: Text(message)));
+                        }
 
-                      try {
-                        if (_nameController.text.isEmpty) {
-                          throw 'Give your quiz a name!';
-                        }
-                        if (creator.questionIds.length == 0) {
-                          throw 'Your quiz is empty, put in some questions!';
-                        }
-                        final questionIds =
-                            creator.questionIds.map((id) => id.substring(5));
-                        final answers = creator.answers;
-                        for (var questionId in questionIds) {
-                          if (answers[questionId] == null ||
-                              ((answers[questionId] is List) &&
-                                  (jsonDecode(questionId) as List)
-                                      .contains(-1))) {
-                            throw 'Please provide the answers for each question!';
+                        try {
+                          if (_nameController.text.isEmpty) {
+                            throw 'Give your quiz a name, such as "ZStudio GMAT Test 1"';
                           }
+                          if (creator.questionIds.length == 0) {
+                            throw 'Your quiz is empty, put in some questions!';
+                          }
+                          final answers = creator.answers;
+                          for (var questionId in creator.dbQuestionIds) {
+                            if (answers[questionId] == null ||
+                                ((answers[questionId] is List) &&
+                                    (jsonDecode(questionId) as List)
+                                        .contains(-1))) {
+                              throw 'Please provide the answers for each question!';
+                            }
+                          }
+                          final response = await supabase
+                              .from('gmat_quizzes')
+                              .insert({
+                                'name': _nameController.text,
+                                'duration': _durationController.text.isEmpty
+                                    ? 30
+                                    : int.parse(_durationController.text),
+                                'author': supabase.auth.currentUser?.email,
+                                'question_ids':
+                                    json.encode(creator.dbQuestionIds),
+                              })
+                              .select()
+                              .single();
+                          final id = response['id'];
+                          if (id == null) {
+                            throw 'Unkown error!';
+                          }
+                          await supabase.from('gmat_quiz_answers').insert(
+                              {'quiz_id': id, "answers": json.encode(answers)});
+                          _alert(
+                              "Your quiz has been created successfully. ID: $id");
+                          onComplete();
+                        } on PostgrestException catch (e) {
+                          _alert(e.details.toString());
+                        } catch (e) {
+                          _alert(e.toString());
+                        } finally {
+                          setState(() {
+                            _loading = false;
+                          });
                         }
-                        final response = await supabase
-                            .from('gmat_quizzes')
-                            .insert({
-                              'name': _nameController.text,
-                              'duration': _durationController.text,
-                              'author': supabase.auth.currentUser?.email,
-                              'question_ids': json.encode(questionIds.toList()),
-                              "answers": json.encode(answers)
-                            })
-                            .select()
-                            .single();
-                        final id = response['id'];
-                        _alert("Quiz ID: $id");
-
-                        if (id == null) {
-                          throw 'Unkown error!';
-                        }
-                      } on PostgrestException catch (e) {
-                        _alert(e.details.toString());
-                      } catch (e) {
-                        _alert(e.toString());
-                      }
-                    },
-                    label: Text("Build Quiz"),
-                    icon: Icon(Icons.done_all),
-                  );
+                      },
+                    );
+                  });
                 }),
               ),
             ),
@@ -237,11 +269,10 @@ class QuizPreview extends StatelessWidget {
         controller: scrollController,
         child: Column(
           children: [
-            ...creator.questionIds.map(
-              (questionId) {
-                final id = questionId.substring(5);
+            ...creator.dbQuestionIds.map(
+              (id) {
                 return Container(
-                  key: ValueKey(questionId),
+                  key: ValueKey(id),
                   margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,8 +280,8 @@ class QuizPreview extends StatelessWidget {
                       Container(
                         margin: EdgeInsets.symmetric(vertical: 8.0),
                         child: CircleAvatar(
-                          child: Text(
-                              "${creator.questionIds.indexOf(questionId) + 1}"),
+                          child:
+                              Text("${creator.dbQuestionIds.indexOf(id) + 1}"),
                         ),
                       ),
                       Expanded(

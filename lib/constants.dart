@@ -28,14 +28,3 @@ enum ColorSeed {
   final String label;
   final Color color;
 }
-
-enum ScreenSelected {
-  ds(0),
-  ps(1),
-  cr(2),
-  sc(3),
-  rc(4);
-
-  const ScreenSelected(this.value);
-  final int value;
-}
