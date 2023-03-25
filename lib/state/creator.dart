@@ -8,6 +8,7 @@ class CreatorState extends ChangeNotifier {
   /// Internal, private state of the cart.
   List<String> questionIds = [];
   Map<String, Question> questions = {};
+  Map<String, dynamic> answers = {};
 
   Future<Question> loadQuestion(String questionId) async {
     return http
@@ -34,5 +35,10 @@ class CreatorState extends ChangeNotifier {
     final questionid = questionIds.removeAt(index);
     notifyListeners();
     return questionid;
+  }
+
+  void giveAnswer(String questionId, dynamic answer) {
+    this.answers[questionId] = answer;
+    notifyListeners();
   }
 }

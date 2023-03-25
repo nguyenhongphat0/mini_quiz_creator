@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mini_quiz_creator/main.dart';
@@ -5,7 +7,7 @@ import 'package:mini_quiz_creator/state/creator.dart';
 import 'package:mini_quiz_creator/state/database.dart';
 import 'package:mini_quiz_creator/widgets/question_detail.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class CreatorScreen extends StatelessWidget {
@@ -123,7 +125,7 @@ class CreatorScreen extends StatelessWidget {
                                             icon: Icon(Icons.launch),
                                             onPressed: () {
                                               launchUrlString(
-                                                  "http://nguyenhongphat0.github.io/open_gmat_database/");
+                                                  "https://nguyenhongphat0.github.io/gmat_question_bank/");
                                             },
                                           ),
                                         ),
@@ -169,11 +171,21 @@ class CreatorScreen extends StatelessWidget {
 
                       try {
                         if (_nameController.text.isEmpty) {
-                          return _alert('Give your quiz a name!');
+                          throw 'Give your quiz a name!';
                         }
                         if (creator.questionIds.length == 0) {
-                          return _alert(
-                              'Your quiz is empty, put in some questions!');
+                          throw 'Your quiz is empty, put in some questions!';
+                        }
+                        final questionIds =
+                            creator.questionIds.map((id) => id.substring(5));
+                        final answers = creator.answers;
+                        for (var questionId in questionIds) {
+                          if (answers[questionId] == null ||
+                              ((answers[questionId] is List) &&
+                                  (jsonDecode(questionId) as List)
+                                      .contains(-1))) {
+                            throw 'Please provide the answers for each question!';
+                          }
                         }
                         final response = await supabase
                             .from('gmat_quizzes')
@@ -181,9 +193,8 @@ class CreatorScreen extends StatelessWidget {
                               'name': _nameController.text,
                               'duration': _durationController.text,
                               'author': supabase.auth.currentUser?.email,
-                              'question_ids': creator.questionIds
-                                  .map((id) => id.substring(5))
-                                  .join(",")
+                              'question_ids': json.encode(questionIds.toList()),
+                              "answers": json.encode(answers)
                             })
                             .select()
                             .single();
@@ -191,8 +202,10 @@ class CreatorScreen extends StatelessWidget {
                         _alert("Quiz ID: $id");
 
                         if (id == null) {
-                          throw Exception('Failed to insert quiz');
+                          throw 'Unkown error!';
                         }
+                      } on PostgrestException catch (e) {
+                        _alert(e.details.toString());
                       } catch (e) {
                         _alert(e.toString());
                       }

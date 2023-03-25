@@ -1,4 +1,5 @@
 class Question {
+  final String id;
   final String src;
   final String question;
   final List<String> explanations;
@@ -6,6 +7,7 @@ class Question {
   final List<SubQuestion>? subQuestions;
 
   Question({
+    required this.id,
     required this.src,
     required this.question,
     required this.explanations,
@@ -15,6 +17,7 @@ class Question {
 
   factory Question.fromJson(Map<String, dynamic> json) {
     return Question(
+      id: json['id'],
       src: json['src'],
       question: json['question'],
       explanations: List<String>.from(json['explanations']),
