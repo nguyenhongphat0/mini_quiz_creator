@@ -10,6 +10,8 @@ class CreatorState extends ChangeNotifier {
   Map<String, Question> questions = {};
   Map<String, dynamic> answers = {};
   bool submissionLoading = false;
+  int selectedQuizIndex = 0;
+  int selectedSubmissionIndex = 0;
 
   get dbQuestionIds {
     return questionIds.map((id) => id.substring(5)).toList();
@@ -57,6 +59,11 @@ class CreatorState extends ChangeNotifier {
 
   void giveAnswer(String questionId, dynamic answer) {
     this.answers[questionId] = answer;
+    notifyListeners();
+  }
+
+  Future<void> replaceAnswerList(String answers) async {
+    this.answers = jsonDecode(answers);
     notifyListeners();
   }
 }

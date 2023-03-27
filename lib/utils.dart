@@ -10,3 +10,12 @@ String getDaysAgo(String timestamp) {
     return '$difference days ago';
   }
 }
+
+String getMinutesDiff(dynamic submission) {
+  final createdAt = DateTime.parse(submission['created_at']);
+  if (submission['submitted_at'] == null) {
+    return "In progress ${DateTime.now().difference(createdAt).inMinutes}'";
+  }
+  final submittedAt = DateTime.parse(submission['submitted_at']);
+  return "${submittedAt.difference(createdAt).inMinutes} minutes";
+}

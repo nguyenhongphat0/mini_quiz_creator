@@ -36,7 +36,7 @@ class _SubmissionsScreenState extends State<SubmissionsScreen> {
                         width: 240, child: QuizSidebar(quizzes: snapshot.data)),
                     Expanded(child: SubmissionPreview()),
                     SizedBox(
-                      width: 200,
+                      width: 240,
                       child: Card(
                         clipBehavior: Clip.hardEdge,
                         margin: EdgeInsets.all(0),
@@ -46,19 +46,8 @@ class _SubmissionsScreenState extends State<SubmissionsScreen> {
                             bottomLeft: Radius.circular(20.0),
                           ),
                         ),
-                        child: NavigationDrawer(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(28, 16, 16, 10),
-                              child: Text(
-                                "Submissions",
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                            ),
-                            NavigationDrawerDestination(
-                                icon: Icon(Icons.pets), label: Text("Teddy"))
-                          ],
+                        child: SubmissionList(
+                          quizzes: snapshot.data,
                         ),
                       ),
                     ),
@@ -86,6 +75,72 @@ class _SubmissionsScreenState extends State<SubmissionsScreen> {
         ],
       ),
     );
+  }
+}
+
+class SubmissionList extends StatelessWidget {
+  final List<dynamic> quizzes;
+
+  const SubmissionList({
+    super.key,
+    required this.quizzes,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CreatorState>(builder: (context, creator, child) {
+      return FutureBuilder(
+          future: supabase.from("gmat_submissions").select<List<dynamic>>().eq(
+              'quiz_id',
+              quizzes[Provider.of<CreatorState>(context, listen: false)
+                  .selectedQuizIndex]['id']),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                snapshot.data == null) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            }
+            return NavigationDrawer(
+              selectedIndex: creator.selectedSubmissionIndex,
+              onDestinationSelected: (value) {
+                creator.selectedSubmissionIndex = value;
+                creator.replaceAnswerList(snapshot.data![value]['answers']);
+              },
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(28, 16, 16, 10),
+                  child: Text(
+                    "Submissions",
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                ...snapshot.data!.map(
+                  (submission) => NavigationDrawerDestination(
+                    icon: CircleAvatar(
+                        foregroundImage: NetworkImage(submission['avatar'])),
+                    label: SizedBox(
+                      width: 135,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(submission['display_name']),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                                "Score: ${submission['score']}/${submission['total_score']} | ${getMinutesDiff(submission)}"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            );
+          });
+    });
   }
 }
 
@@ -124,42 +179,9 @@ class SubmissionPreview extends StatelessWidget {
                               ),
                             ),
                             Expanded(
-                              child: creator.questions.containsKey(id)
-                                  ? QuestionDetail(
-                                      question: creator.questions[id]!,
-                                    )
-                                  : FutureBuilder(
-                                      future: creator.loadQuestion(id),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Center(
-                                              child:
-                                                  CircularProgressIndicator());
-                                        } else if (snapshot.hasError) {
-                                          return Center(
-                                              child: Text(
-                                                  'Error: ${snapshot.error}'));
-                                        } else {
-                                          final question = snapshot.data!;
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback(
-                                                  (timeStamp) {
-                                            scrollController.animateTo(
-                                              scrollController
-                                                  .position.maxScrollExtent,
-                                              duration:
-                                                  Duration(milliseconds: 500),
-                                              curve: Curves.easeOut,
-                                            );
-                                          });
-                                          return QuestionDetail(
-                                            question: question,
-                                          );
-                                        }
-                                      },
-                                    ),
-                            ),
+                                child: QuestionDetail(
+                              question: creator.questions[id]!,
+                            )),
                           ],
                         ),
                       );
@@ -182,11 +204,10 @@ class QuizSidebar extends StatefulWidget {
 }
 
 class _QuizSidebarState extends State<QuizSidebar> {
-  int _selectedQuizIndex = 0;
-
   get quizQuestions {
-    return (jsonDecode(widget.quizzes[_selectedQuizIndex]['question_ids'])
-            as List)
+    final index =
+        Provider.of<CreatorState>(context, listen: false).selectedQuizIndex;
+    return (jsonDecode(widget.quizzes[index]['question_ids']) as List)
         .map((id) => "$id")
         .toList();
   }
@@ -202,11 +223,9 @@ class _QuizSidebarState extends State<QuizSidebar> {
   Widget build(BuildContext context) {
     return Consumer<CreatorState>(builder: (context, creator, child) {
       return NavigationDrawer(
-          selectedIndex: _selectedQuizIndex,
+          selectedIndex: creator.selectedQuizIndex,
           onDestinationSelected: (value) {
-            setState(() {
-              _selectedQuizIndex = value;
-            });
+            creator.selectedQuizIndex = value;
             creator.replaceQuestionList(quizQuestions);
           },
           children: [

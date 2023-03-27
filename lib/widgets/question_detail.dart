@@ -54,14 +54,14 @@ class _QuestionDetailState extends State<QuestionDetail> {
                         children: List.generate(
                           widget.question.subQuestions?.length ?? 0,
                           (index) {
-                            final answers =
-                                creator.answers[widget.question.id] != null
-                                    ? jsonDecode(
-                                        creator.answers[widget.question.id])
-                                    : List.generate(
-                                        widget.question.subQuestions?.length ??
-                                            0,
-                                        (index) => -1);
+                            final answers = creator
+                                            .answers[widget.question.id] !=
+                                        null &&
+                                    creator.answers[widget.question.id] != -1
+                                ? creator.answers[widget.question.id]
+                                : List.generate(
+                                    widget.question.subQuestions?.length ?? 0,
+                                    (index) => -1);
                             return Column(
                               children: [
                                 RichContent(widget
@@ -72,8 +72,8 @@ class _QuestionDetailState extends State<QuestionDetail> {
                                   value: answers[index],
                                   onChange: (int subAnswer) {
                                     answers[index] = subAnswer;
-                                    creator.giveAnswer(widget.question.id,
-                                        jsonEncode(answers));
+                                    creator.giveAnswer(
+                                        widget.question.id, answers);
                                   },
                                 ),
                               ],
