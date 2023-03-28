@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mini_quiz_creator/main.dart';
 import 'package:mini_quiz_creator/state/creator.dart';
 import 'package:mini_quiz_creator/utils.dart';
@@ -16,25 +17,25 @@ class _SubmissionsScreenState extends State<SubmissionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Stack(
-        children: [
-          FutureBuilder(
-              future: supabase
-                  .from('gmat_quizzes')
-                  .select()
-                  .order('created_at', ascending: false),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text(snapshot.error.toString()));
-                }
-                return Row(
+      child: FutureBuilder(
+          future: supabase
+              .from('gmat_quizzes')
+              .select()
+              .order('created_at', ascending: false),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text(snapshot.error.toString()));
+            }
+            final quizzes = snapshot.data;
+            return Stack(
+              children: [
+                Row(
                   children: [
-                    SizedBox(
-                        width: 240, child: QuizSidebar(quizzes: snapshot.data)),
-                    Expanded(child: SubmissionPreview()),
+                    SizedBox(width: 240, child: QuizSidebar(quizzes: quizzes)),
+                    Expanded(child: SubmissionReview()),
                     SizedBox(
                       width: 240,
                       child: Card(
@@ -52,28 +53,35 @@ class _SubmissionsScreenState extends State<SubmissionsScreen> {
                       ),
                     ),
                   ],
-                );
-              }),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                child:
-                    Consumer<CreatorState>(builder: (context, creator, child) {
-                  return StatefulBuilder(builder: (context, setState) {
-                    return FloatingActionButton.extended(
-                      label: Text("Copy Quiz Link"),
-                      icon: Icon(Icons.copy),
-                      onPressed: () async {},
-                    );
-                  });
-                }),
-              ),
-            ),
-          )
-        ],
-      ),
+                ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      child: Consumer<CreatorState>(
+                          builder: (context, creator, child) {
+                        return StatefulBuilder(builder: (context, setState) {
+                          return FloatingActionButton.extended(
+                            label: Text("Copy Quiz Link"),
+                            icon: Icon(Icons.copy),
+                            onPressed: () async {
+                              final link =
+                                  "https://zalo.me/s/724237147568902829/?quizId=${quizzes[creator.selectedQuizIndex]['id']}";
+                              Clipboard.setData(ClipboardData(text: link));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                  content: Text(
+                                      "Copied to clipboard: https://zalo.me/s/724237147568902829/?quizId=${quizzes[creator.selectedQuizIndex]['id']}")));
+                            },
+                          );
+                        });
+                      }),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
     );
   }
 }
@@ -102,6 +110,12 @@ class SubmissionList extends StatelessWidget {
             if (snapshot.hasError) {
               return Center(child: Text(snapshot.error.toString()));
             }
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              if (creator.submissionLoading) {
+                creator.replaceAnswerList(
+                    snapshot.data![creator.selectedSubmissionIndex]['answers']);
+              }
+            });
             return NavigationDrawer(
               selectedIndex: creator.selectedSubmissionIndex,
               onDestinationSelected: (value) {
@@ -130,7 +144,7 @@ class SubmissionList extends StatelessWidget {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                                "Score: ${submission['score']}/${submission['total_score']} | ${getMinutesDiff(submission)}"),
+                                "Score: ${submission['score']}/${submission['total_score']} | ${attendedAt(submission)}"),
                           ),
                         ],
                       ),
@@ -144,8 +158,8 @@ class SubmissionList extends StatelessWidget {
   }
 }
 
-class SubmissionPreview extends StatelessWidget {
-  SubmissionPreview({
+class SubmissionReview extends StatelessWidget {
+  SubmissionReview({
     super.key,
   });
 
@@ -181,6 +195,7 @@ class SubmissionPreview extends StatelessWidget {
                             Expanded(
                                 child: QuestionDetail(
                               question: creator.questions[id]!,
+                              quizAnswer: creator.currentQuizAnswers![id],
                             )),
                           ],
                         ),
@@ -204,10 +219,13 @@ class QuizSidebar extends StatefulWidget {
 }
 
 class _QuizSidebarState extends State<QuizSidebar> {
+  int get selectedQuizIndex {
+    return Provider.of<CreatorState>(context, listen: false).selectedQuizIndex;
+  }
+
   get quizQuestions {
-    final index =
-        Provider.of<CreatorState>(context, listen: false).selectedQuizIndex;
-    return (jsonDecode(widget.quizzes[index]['question_ids']) as List)
+    return (jsonDecode(widget.quizzes[selectedQuizIndex]['question_ids'])
+            as List)
         .map((id) => "$id")
         .toList();
   }
@@ -215,8 +233,10 @@ class _QuizSidebarState extends State<QuizSidebar> {
   @override
   void initState() {
     super.initState();
-    Provider.of<CreatorState>(context, listen: false)
-        .replaceQuestionList(quizQuestions);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      Provider.of<CreatorState>(context, listen: false).replaceQuestionList(
+          quizQuestions, widget.quizzes[selectedQuizIndex]['id']);
+    });
   }
 
   @override
@@ -226,7 +246,8 @@ class _QuizSidebarState extends State<QuizSidebar> {
           selectedIndex: creator.selectedQuizIndex,
           onDestinationSelected: (value) {
             creator.selectedQuizIndex = value;
-            creator.replaceQuestionList(quizQuestions);
+            creator.replaceQuestionList(
+                quizQuestions, widget.quizzes[value]['id']);
           },
           children: [
             Padding(

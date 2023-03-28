@@ -206,7 +206,7 @@ class CreatorScreen extends StatelessWidget {
                           for (var questionId in creator.dbQuestionIds) {
                             if (answers[questionId] == null ||
                                 ((answers[questionId] is List) &&
-                                    (jsonDecode(questionId) as List)
+                                    (answers[questionId] as List)
                                         .contains(-1))) {
                               throw 'Please provide the answers for each question!';
                             }
@@ -228,8 +228,14 @@ class CreatorScreen extends StatelessWidget {
                           if (id == null) {
                             throw 'Unkown error!';
                           }
-                          await supabase.from('gmat_quiz_answers').insert(
-                              {'quiz_id': id, "answers": json.encode(answers)});
+                          final answersForQuiz = {};
+                          for (var questionId in creator.dbQuestionIds) {
+                            answersForQuiz[questionId] = answers[questionId];
+                          }
+                          await supabase.from('gmat_quiz_answers').insert({
+                            'quiz_id': id,
+                            "answers": json.encode(answersForQuiz)
+                          });
                           _alert(
                               "Your quiz has been created successfully. ID: $id");
                           onComplete();

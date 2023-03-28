@@ -33,16 +33,6 @@ class DatabaseState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setQuestionContent(Question question) {
-    final document = parse(question.question
-        .replaceAll('<br><br>', '<br>')
-        .replaceAll('<br>', '\n'));
-    final String textContent = parse(document.body!.text).documentElement!.text;
-    this.questionContent = textContent;
-    Clipboard.setData(ClipboardData(text: textContent));
-    this.questionSrc = question.src;
-  }
-
   List<String> get allQuestionIds {
     List<String> ids = [];
     ids.addAll(this.database?.cr.map((id) => "[CR] $id") ?? []);

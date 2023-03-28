@@ -9,12 +9,10 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../models/question.dart';
 
 class QuestionDetail extends StatefulWidget {
-  QuestionDetail({
-    super.key,
-    required this.question,
-  });
+  QuestionDetail({super.key, required this.question, this.quizAnswer});
 
   final Question question;
+  final dynamic quizAnswer;
 
   @override
   State<QuestionDetail> createState() => _QuestionDetailState();
@@ -45,6 +43,7 @@ class _QuestionDetailState extends State<QuestionDetail> {
                       ListAnswer(
                         answers: widget.question.answers!,
                         value: creator.answers[widget.question.id],
+                        quizAnswer: widget.quizAnswer,
                         onChange: (answer) {
                           creator.giveAnswer(widget.question.id, answer);
                         },
@@ -70,6 +69,7 @@ class _QuestionDetailState extends State<QuestionDetail> {
                                   answers: widget
                                       .question.subQuestions![index].answers,
                                   value: answers[index],
+                                  quizAnswer: widget.quizAnswer?[index],
                                   onChange: (int subAnswer) {
                                     answers[index] = subAnswer;
                                     creator.giveAnswer(
@@ -93,25 +93,32 @@ class _QuestionDetailState extends State<QuestionDetail> {
 }
 
 class ListAnswer extends StatelessWidget {
-  ListAnswer({
-    super.key,
-    required this.answers,
-    required this.value,
-    required this.onChange,
-  });
+  ListAnswer(
+      {super.key,
+      required this.answers,
+      required this.value,
+      required this.onChange,
+      this.quizAnswer});
 
   final List<String> answers;
   final int value;
   final void Function(int answer) onChange;
+  final int? quizAnswer;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: List.generate(answers.length, (int index) {
         return Card(
-          color: index == value
-              ? Theme.of(context).colorScheme.surfaceVariant
-              : null,
+          color: quizAnswer == null
+              ? (index == value
+                  ? Theme.of(context).colorScheme.surfaceVariant
+                  : null)
+              : (index == quizAnswer
+                  ? (index == value
+                      ? Colors.green
+                      : Theme.of(context).colorScheme.surfaceVariant)
+                  : (index == value ? Colors.red : null)),
           child: InkWell(
             borderRadius: BorderRadius.all(Radius.circular(10.0)),
             onTap: () {
@@ -123,7 +130,9 @@ class ListAnswer extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     backgroundColor: Theme.of(context).colorScheme.surface,
-                    child: Text(String.fromCharCode(65 + index)),
+                    child: quizAnswer != null && index == value
+                        ? Icon(value == quizAnswer ? Icons.check : Icons.close)
+                        : Text(String.fromCharCode(65 + index)),
                   ),
                   SizedBox(
                     width: 8.0,

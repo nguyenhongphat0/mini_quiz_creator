@@ -1,19 +1,21 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:mini_quiz_creator/main.dart';
 import 'package:mini_quiz_creator/models/question.dart';
 import 'package:http/http.dart' as http;
 
 class CreatorState extends ChangeNotifier {
-  /// Internal, private state of the cart.
   List<String> questionIds = [];
   Map<String, Question> questions = {};
+  Map<int, Map<String, dynamic>> quizAnswers = {};
   Map<String, dynamic> answers = {};
   bool submissionLoading = false;
   int selectedQuizIndex = 0;
   int selectedSubmissionIndex = 0;
+  Map<String, dynamic>? currentQuizAnswers;
 
-  get dbQuestionIds {
+  List<String> get dbQuestionIds {
     return questionIds.map((id) => id.substring(5)).toList();
   }
 
@@ -29,6 +31,23 @@ class CreatorState extends ChangeNotifier {
       questions[questionId] = question;
       return question;
     });
+  }
+
+  Future<Map<String, dynamic>> loadQuizAnswers(int quizId) async {
+    if (quizAnswers[quizId] != null) {
+      return Future.value(quizAnswers[quizId]);
+    }
+    final result = await supabase
+        .from('gmat_quiz_answers')
+        .select('answers')
+        .eq('quiz_id', quizId)
+        .single();
+    if (result != null) {
+      final answers = jsonDecode(result['answers']);
+      quizAnswers[quizId] = answers;
+      return answers;
+    }
+    return {};
   }
 
   void addQuestion(String questionId) {
@@ -47,9 +66,10 @@ class CreatorState extends ChangeNotifier {
     return questionid;
   }
 
-  Future<void> replaceQuestionList(List<String> questionIds) async {
+  Future<void> replaceQuestionList(List<String> questionIds, int quizId) async {
     this.submissionLoading = true;
     notifyListeners();
+    this.currentQuizAnswers = await loadQuizAnswers(quizId);
     final res = await Future.wait(questionIds.map((id) => loadQuestion(id)));
     this.questionIds =
         res.map((question) => "[${question.type}] ${question.id}").toList();

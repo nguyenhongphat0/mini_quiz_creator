@@ -11,11 +11,19 @@ String getDaysAgo(String timestamp) {
   }
 }
 
-String getMinutesDiff(dynamic submission) {
+String attendedAt(dynamic submission) {
   final createdAt = DateTime.parse(submission['created_at']);
-  if (submission['submitted_at'] == null) {
-    return "In progress ${DateTime.now().difference(createdAt).inMinutes}'";
+  final now = DateTime.now();
+  final difference = now.difference(createdAt);
+  if (difference.inSeconds < 60) {
+    return '⏳ Just started';
+  } else if (difference.inMinutes < 60) {
+    return '${difference.inMinutes} minutes ago';
+  } else if (difference.inHours < 24) {
+    return '${difference.inHours} hours ago';
+  } else if (difference.inDays < 30) {
+    return '${difference.inDays} days ago';
+  } else {
+    return createdAt.toString().split(' ')[0];
   }
-  final submittedAt = DateTime.parse(submission['submitted_at']);
-  return "${submittedAt.difference(createdAt).inMinutes} minutes";
 }
