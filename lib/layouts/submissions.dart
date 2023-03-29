@@ -67,11 +67,11 @@ class _SubmissionsScreenState extends State<SubmissionsScreen> {
                             icon: Icon(Icons.copy),
                             onPressed: () async {
                               final link =
-                                  "https://zalo.me/s/724237147568902829/?quizId=${quizzes[creator.selectedQuizIndex]['id']}";
+                                  "https://zalo.me/s/724237147568902829/?quiz=${quizzes[creator.selectedQuizIndex]['id']}";
                               Clipboard.setData(ClipboardData(text: link));
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                   content: Text(
-                                      "Copied to clipboard: https://zalo.me/s/724237147568902829/?quizId=${quizzes[creator.selectedQuizIndex]['id']}")));
+                                      "Copied to clipboard: https://zalo.me/s/724237147568902829/?quiz=${quizzes[creator.selectedQuizIndex]['id']}")));
                             },
                           );
                         });
