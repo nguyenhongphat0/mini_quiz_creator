@@ -4,8 +4,8 @@ This app allows users to create GMAT tests and view submissions.
 
 ## Preview
 
-![Dark](./docs/demo/latex.png)
-![Light](./docs/demo/reading.png)
+![Creator](./docs/demo/creator.png)
+![Reviewer](./docs/demo/reviewer.png)
 
 ## Features
 
