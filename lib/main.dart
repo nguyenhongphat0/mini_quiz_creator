@@ -17,6 +17,7 @@ Future<void> main() async {
     url: 'https://przvyntsigxljcvmzyos.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByenZ5bnRzaWd4bGpjdm16eW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc5MDk5NTAsImV4cCI6MTk5MzQ4NTk1MH0.SR7cteHreLMDz234A9dqOONCVzIerpDDgrflTl2jR_Q',
+    schema: "gmat",
   );
 
   runApp(App());
