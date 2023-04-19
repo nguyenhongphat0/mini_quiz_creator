@@ -8,7 +8,6 @@ import 'package:mini_quiz_creator/layouts/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'browser.dart';
 import 'constants.dart';
 import 'layouts/home.dart';
 import 'layouts/otp.dart';
@@ -46,7 +45,6 @@ class _AppState extends State<App> {
       });
     });
     super.initState();
-    alert('Welcome user! This js alert script is triggered from dart code.');
   }
 
   bool get useLightMode {
