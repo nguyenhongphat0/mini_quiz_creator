@@ -29,7 +29,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png" />
 
-    <title>mini_quiz_creator</title>
+    <title>Mini Quiz Creator</title>
     <link rel="manifest" href="manifest.json" />
   </head>
   <body>
@@ -98,6 +98,11 @@
       } else {
         // Service workers not supported. Just drop the <script> tag.
         loadMainDartJs();
+      }
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("mini-app-service-worker.js");
       }
     </script>
   </body>
