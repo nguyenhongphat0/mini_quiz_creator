@@ -1,6 +1,10 @@
+import 'dart:js_util';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mini_quiz_creator/browser.dart';
 import 'package:mini_quiz_creator/main.dart';
+import 'package:mini_quiz_creator/models/firebase.dart';
 
 class LoginScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
@@ -9,10 +13,12 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? subscription;
+
     return Scaffold(
       body: Center(
           child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
         child: SizedBox(
           width: 400,
           child: Column(
@@ -81,14 +87,29 @@ class LoginScreen extends StatelessWidget {
                   }),
                 ),
               ),
-              IconButton(
-                onPressed: () {
-                  requestNotification();
-                },
-                icon: Icon(
-                  Icons.notifications_active,
-                ),
-              )
+              StatefulBuilder(builder: (context, setState) {
+                return IconButton(
+                  onPressed: () async {
+                    if (subscription != null) {
+                      Clipboard.setData(ClipboardData(text: subscription));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("Copied to clipboard: $subscription")));
+                    } else {
+                      String token =
+                          await promiseToFuture(requestNotification());
+                      print(token);
+                      setState(() {
+                        subscription = token;
+                      });
+                    }
+                  },
+                  icon: Icon(
+                    subscription != null
+                        ? Icons.copy
+                        : Icons.notifications_active,
+                  ),
+                );
+              })
             ],
           ),
         ),

@@ -3,6 +3,5 @@ library browser;
 
 import 'package:js/js.dart';
 
-// Calls invoke JavaScript `JSON.stringify(obj)`.
-@JS('Notification.requestPermission')
-external void requestNotification();
+@JS('registerPushNotification')
+external Object requestNotification();
