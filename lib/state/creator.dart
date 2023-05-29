@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:mini_quiz_creator/constants.dart';
 import 'package:mini_quiz_creator/main.dart';
 import 'package:mini_quiz_creator/models/question.dart';
 import 'package:http/http.dart' as http;
@@ -24,8 +25,7 @@ class CreatorState extends ChangeNotifier {
       return Future.value(questions[questionId]);
     }
     return http
-        .get(Uri.parse(
-            'https://nguyenhongphat0.github.io/gmat-database/$questionId.json'))
+        .get(Uri.parse('$GMAT_DATABASE_URL/$questionId.json'))
         .then((value) {
       final question = Question.fromJson(jsonDecode(value.body));
       questions[questionId] = question;

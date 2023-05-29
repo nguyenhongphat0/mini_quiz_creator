@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mini_quiz_creator/constants.dart';
 import 'package:mini_quiz_creator/main.dart';
 import 'package:mini_quiz_creator/state/creator.dart';
 import 'package:mini_quiz_creator/state/database.dart';
@@ -134,7 +135,7 @@ class CreatorScreen extends StatelessWidget {
                                             icon: Icon(Icons.launch),
                                             onPressed: () {
                                               launchUrlString(
-                                                  "https://nguyenhongphat0.github.io/gmat_question_bank/");
+                                                  "$GMAT_QUESTION_BANK_URL");
                                             },
                                           ),
                                         ),

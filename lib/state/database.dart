@@ -1,12 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:html/parser.dart';
 import 'package:mini_quiz_creator/constants.dart';
 import 'package:mini_quiz_creator/models/database.dart';
 import 'package:http/http.dart' as http;
-import 'package:mini_quiz_creator/models/question.dart';
 
 class DatabaseState extends ChangeNotifier {
   /// Internal, private state of the cart.
@@ -20,8 +17,7 @@ class DatabaseState extends ChangeNotifier {
   }
 
   Future _init() async {
-    final value = await http.get(Uri.parse(
-        'https://nguyenhongphat0.github.io/gmat-database/index.json'));
+    final value = await http.get(Uri.parse('$GMAT_DATABASE_URL/index.json'));
     final database = Database.fromJson(jsonDecode(value.body));
     this.database = database;
     print(database);
