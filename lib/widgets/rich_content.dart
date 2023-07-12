@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:catex/catex.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 
 class RichContent extends StatelessWidget {
   const RichContent(this.text, {Key? key}) : super(key: key);
@@ -42,7 +41,7 @@ class RichContent extends StatelessWidget {
                     .replaceAll('&lt;', '<')
                     .replaceAll('&gt;', '>');
 
-                return WidgetSpan(child: CaTeX(latex));
+                return WidgetSpan(child: Math.tex(latex));
               } else {
                 return WidgetSpan(child: Html(data: part));
               }

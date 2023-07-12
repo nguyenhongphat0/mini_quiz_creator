@@ -91,7 +91,8 @@ class LoginScreen extends StatelessWidget {
                 return IconButton(
                   onPressed: () async {
                     if (subscription != null) {
-                      Clipboard.setData(ClipboardData(text: subscription));
+                      Clipboard.setData(
+                          ClipboardData(text: subscription ?? ""));
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text("Copied to clipboard: $subscription")));
                     } else {
